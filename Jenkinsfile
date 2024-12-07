@@ -71,6 +71,25 @@ pipeline {
             }
         }
 
+        stage('Deploy Staging') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                    npm install netlify-cli node-jq
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to production."
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output.json
+                    node-jq -r '.deploy_url' deploy-output.json
+                '''
+            }
+        }
+
         stage('Approval') {
             steps {
                 timeout(time: 1, unit: 'MINUTES') {
@@ -96,6 +115,7 @@ pipeline {
                 '''
             }
         }
+
         stage('PROD E2E') {
             agent {
                 docker {
