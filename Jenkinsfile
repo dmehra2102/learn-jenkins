@@ -71,6 +71,14 @@ pipeline {
             }
         }
 
+        stage('Approval') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    input message: 'Test stage passed. Should we deploy it to PROD ?', ok: 'Procced with Deployment'
+                }
+            }
+        }
+
         stage('Deploy') {
             agent {
                 docker {
